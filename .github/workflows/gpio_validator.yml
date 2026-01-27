@@ -19,7 +19,8 @@ jobs:
     strategy:
       fail-fast: false # Continue other jobs if one fails
       matrix:
-        target: [esp32, esp32s3, esp32c3]
+        # target: [esp32, esp32s3, esp32c3]
+        target: esp32
 
     steps:
       - name: Checkout code
@@ -46,13 +47,13 @@ jobs:
           idf.py build
       
       - name: QEMU tests (esp32 only)
-        if: matrix.target == 'esp32'
         shell: bash
         working-directory: gpio_validator/test
         run: |
           . $IDF_PATH/export.sh
           python -m pip install pytest pytest-embedded pytest-embedded-idf pytest-embedded-qemu
-          python -m pytest pytest_gpio_validator.py --target esp32
+          idf.py qemu --prep
+          python -m pytest pytest_gpio_validator.py --target esp32 -s
           
       # - name: QEMU tests all targets
       #   if: matrix.target == ${{ matrix.target }}

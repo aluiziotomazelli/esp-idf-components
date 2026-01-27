@@ -13,6 +13,7 @@ def test_gpio_validator(dut: Dut) -> None:
     dut.expect(r'Calling app_main\(\)', timeout=60)
     
     # Wait for the menu prompt
+    dut.expect(r'ROM code version', timeout=30)
     dut.expect(r'Press ENTER to see the list of tests', timeout=30)
     
     # Retry loop to trigger menu (QEMU can be flaky with input)
