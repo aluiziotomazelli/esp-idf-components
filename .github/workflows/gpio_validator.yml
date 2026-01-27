@@ -1,0 +1,53 @@
+# .github/workflows/gpio_validator.yml
+name: Build GPIO Validator
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'gpio_validator/**' 
+  pull_request:
+    paths:
+      - 'gpio_validator/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # GitHub pulls the Espressif image and mounts your repo inside it
+    container: espressif/idf:release-v5.5
+    strategy:
+      fail-fast: false # Continue other jobs if one fails
+      matrix:
+        target: [esp32, esp32s3, esp32c3]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build GPIO Validator for ${{ matrix.target }}
+        shell: bash
+        # Go to project folder
+        working-directory: gpio_validator/test
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py set-target ${{ matrix.target }}
+          idf.py build
+      
+      - name: QEMU tests (esp32 only)
+        if: matrix.target == 'esp32'
+        shell: bash
+        working-directory: gpio_validator/test
+        run: |
+          . $IDF_PATH/export.sh
+          python -m pytest pytest_gpio_validator.py --target esp32
+          
+      # - name: QEMU tests all targets
+      #   if: matrix.target == ${{ matrix.target }}
+      #   shell: bash
+      #   working-directory: gpio_validator/test
+      #   run: |
+      #     . $IDF_PATH/export.sh
+      #     python -m pytest pytest_gpio_validator.py --target ${{ matrix.target }}
+          

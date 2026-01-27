@@ -1,3 +1,4 @@
+# gpio_validator/test/pytest_gpio_validator.py
 import time
 import pytest
 from pytest_embedded import Dut
@@ -9,33 +10,33 @@ from pytest_embedded import Dut
 @pytest.mark.linux
 def test_gpio_validator(dut: Dut) -> None:
     # Wait for the application to reach app_main
-    dut.expect_exact('Calling app_main()', timeout=30)
+    dut.expect(r'Calling app_main\(\)', timeout=60)
     
     # Wait for the menu prompt
-    dut.expect_exact('Press ENTER to see the list of tests.', timeout=30)
+    dut.expect(r'Press ENTER to see the list of tests', timeout=30)
     
     # Retry loop to trigger menu (QEMU can be flaky with input)
     for _ in range(5):
-        dut.write('\r\n')
+        dut.write('\n')
         time.sleep(1)
         try:
             # We look for a unique part of the menu prompt
             # dut.expect_exact('Enter test name or number', timeout=5)
-            dut.expect_exact('the test menu, pick your combo', timeout=5)
+            dut.expect(r'the test menu, pick your combo', timeout=5)
             break
         except Exception:
             continue
     else:
         # Final attempt
         dut.write('\n')
-        dut.expect_exact('Enter test name or number', timeout=10)
+        dut.expect(r'Enter test name or number', timeout=10)
     
     # Run all tests (selection '*')
     dut.write('*')
     
     # Unity output pattern for test summary: "X Tests Y Failures Z Ignored"
     # Example: "6 Tests 0 Failures 0 Ignored"
-    match = dut.expect(r'(\d+) Tests (\d+) Failures (\d+) Ignored', timeout=30)
+    match = dut.expect(r'(\d+) Tests (\d+) Failures (\d+) Ignored', timeout=60)
     
     tests_run = int(match.group(1))
     failures = int(match.group(2))
