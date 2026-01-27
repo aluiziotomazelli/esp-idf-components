@@ -5,7 +5,8 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'gpio_validator/**' 
+      - 'gpio_validator/**'
+      - '.github/workflows/gpio_validator.yml'
   pull_request:
     paths:
       - 'gpio_validator/**'
