@@ -39,18 +39,10 @@ jobs:
           idf.py set-target esp32
           idf.py build
           
-          CUR_DIR=$(pwd)
-          python -m esptool --chip esp32 merge_bin \
-            -o $CUR_DIR/build/flash_image.bin \
-            --fill-flash-size 4MB \
-            --flash_mode dio \
-            --flash_freq 40m \
-            --flash_size 4MB \
-            0x1000 $CUR_DIR/build/bootloader/bootloader.bin \
-            0x8000 $CUR_DIR/build/partition_table/partition-table.bin \
-            0x10000 $CUR_DIR/build/test_gpio_validator.bin
+          export ESP_PATH=$IDF_PATH
 
           python -m pytest pytest_gpio_validator.py \
-            --embedded-services qemu \
-            --qemu-image build/flash_image.bin \
+            --target esp32 \
+            --embedded-services idf,qemu \
+            --build-dir build \
             -s
