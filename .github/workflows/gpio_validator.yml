@@ -12,15 +12,9 @@ on:
       - 'gpio_validator/**'
 
 jobs:
-  build:
+  test_esp32:
     runs-on: ubuntu-latest
-    # GitHub pulls the Espressif image and mounts your repo inside it
     container: espressif/idf:release-v5.5
-    strategy:
-      fail-fast: false # Continue other jobs if one fails
-      matrix:
-        # target: [esp32, esp32s3, esp32c3]
-        target: esp32
 
     steps:
       - name: Checkout code
@@ -28,38 +22,17 @@ jobs:
         with:
           submodules: recursive
 
-      # - name: Build GPIO Validator for ${{ matrix.target }}
-      #   shell: bash
-      #   # Go to project folder
-      #   working-directory: gpio_validator/test
-      #   run: |
-      #     . $IDF_PATH/export.sh
-      #     idf.py set-target ${{ matrix.target }}
-      #     idf.py build
-
-      - name: Build GPIO Validator for esp32
+      - name: Build and Test ESP32
         shell: bash
-        # Go to project folder
         working-directory: gpio_validator/test
         run: |
           . $IDF_PATH/export.sh
+          
+          python -m pip install pytest-embedded-idf pytest-embedded-qemu
+                    
           idf.py set-target esp32
           idf.py build
-      
-      - name: QEMU tests (esp32 only)
-        shell: bash
-        working-directory: gpio_validator/test
-        run: |
-          . $IDF_PATH/export.sh
-          python -m pip install pytest pytest-embedded pytest-embedded-idf pytest-embedded-qemu
+          
           idf.py qemu --prep
+          
           python -m pytest pytest_gpio_validator.py --target esp32 -s
-          
-      # - name: QEMU tests all targets
-      #   if: matrix.target == ${{ matrix.target }}
-      #   shell: bash
-      #   working-directory: gpio_validator/test
-      #   run: |
-      #     . $IDF_PATH/export.sh
-      #     python -m pytest pytest_gpio_validator.py --target ${{ matrix.target }}
-          
