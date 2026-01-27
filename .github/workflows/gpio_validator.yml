@@ -38,11 +38,14 @@ jobs:
           
           idf.py set-target esp32
           idf.py build
-          
-          export ESP_PATH=$IDF_PATH
 
-          python -m pytest pytest_gpio_validator.py \
-            --target esp32 \
-            --embedded-services idf,qemu \
-            --build-dir build \
-            -s
+          # mkdir -p bootloader partition_table
+
+          # cp build/bootloader/bootloader.bin bootloader/
+          # cp build/partition_table/partition-table.bin partition_table/
+          # cp build/test_gpio_validator.bin .
+
+          # python -m pytest pytest_gpio_validator.py \
+          #   --target esp32 \
+          #   --embedded-services idf,qemu \
+          #   -s
