@@ -1,0 +1,28 @@
+# .github/workflows/ci.yml
+name: Build GPIO Validator
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # GitHub pulls the Espressif image and mounts your repo inside it
+    container: espressif/idf:release-v5.5
+    strategy:
+      matrix:
+        target: [esp32, esp32s3, esp32c3]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build GPIO Validator for ${{ matrix.target }}
+        shell: bash
+        # Go to project folder
+        working-directory: gpio_validator/test
+        run: |
+          . $IDF_PATH/export.sh
+          idf.py set-target ${{ matrix.target }}
+          idf.py build
