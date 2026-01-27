@@ -22,21 +22,35 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Cache IDF build
+        uses: actions/cache@v3
+        with:
+          path: gpio_validator/test/build
+          key: idf-build-esp32-${{ hashFiles('gpio_validator/test/main/**') }}
+          restore-keys: idf-build-esp32-
+
       - name: Build and Test ESP32
         shell: bash
         working-directory: gpio_validator/test
         run: |
           . $IDF_PATH/export.sh
-          
-          python -m pip install pytest-embedded-idf pytest-embedded-qemu
+          python -m pip install pytest-embedded-qemu pytest-embedded-idf
           
           idf.py set-target esp32
           idf.py build
+          
+          CUR_DIR=$(pwd)
+          python -m esptool --chip esp32 merge_bin \
+            -o $CUR_DIR/build/flash_image.bin \
+            --fill-flash-size 4MB \
+            --flash_mode dio \
+            --flash_freq 40m \
+            --flash_size 4MB \
+            0x1000 $CUR_DIR/build/bootloader/bootloader.bin \
+            0x8000 $CUR_DIR/build/partition_table/partition-table.bin \
+            0x10000 $CUR_DIR/build/test_gpio_validator.bin
 
-          cd build
-
-          python -m pytest ../pytest_gpio_validator.py \
-            --target esp32 \
-            --embedded-services idf,qemu \
-            -c ../pytest.ini \
+          python -m pytest pytest_gpio_validator.py \
+            --embedded-services qemu \
+            --qemu-image build/flash_image.bin \
             -s
