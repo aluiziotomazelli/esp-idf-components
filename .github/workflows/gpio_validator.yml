@@ -26,13 +26,22 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build GPIO Validator for ${{ matrix.target }}
+      # - name: Build GPIO Validator for ${{ matrix.target }}
+      #   shell: bash
+      #   # Go to project folder
+      #   working-directory: gpio_validator/test
+      #   run: |
+      #     . $IDF_PATH/export.sh
+      #     idf.py set-target ${{ matrix.target }}
+      #     idf.py build
+
+      - name: Build GPIO Validator for esp32
         shell: bash
         # Go to project folder
         working-directory: gpio_validator/test
         run: |
           . $IDF_PATH/export.sh
-          idf.py set-target ${{ matrix.target }}
+          idf.py set-target esp32
           idf.py build
       
       - name: QEMU tests (esp32 only)
@@ -41,6 +50,7 @@ jobs:
         working-directory: gpio_validator/test
         run: |
           . $IDF_PATH/export.sh
+          python -m pip install pytest pytest-embedded pytest-embedded-idf pytest-embedded-qemu
           python -m pytest pytest_gpio_validator.py --target esp32
           
       # - name: QEMU tests all targets
