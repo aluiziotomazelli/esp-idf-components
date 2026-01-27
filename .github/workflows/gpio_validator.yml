@@ -33,8 +33,16 @@ jobs:
           idf.py set-target esp32
           idf.py build
 
-          python -m pytest pytest_gpio_validator.py \
-            --target esp32 \
-            --embedded-services idf,qemu \
-            --app-path build/test_gpio_validator.bin \
-            -s
+          cd build
+          esptool.py --chip esp32 merge_bin \
+            -o flash_image.bin \
+            --fill-flash-size 4MB \
+            --flash_mode dio \
+            --flash_freq 40m \
+            --flash_size 4MB \
+            0x1000 bootloader/bootloader.bin \
+            0x8000 partition_table/partition-table.bin \
+            0x10000 test_gpio_validator.bin
+          cd ..
+
+          python -m pytest pytest_gpio_validator.py --target esp32 --embedded-services idf,qemu -s
