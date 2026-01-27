@@ -29,12 +29,14 @@ jobs:
           . $IDF_PATH/export.sh
           
           python -m pip install pytest-embedded-idf pytest-embedded-qemu
-                    
+          
           idf.py set-target esp32
           idf.py build
 
-          python -m pytest pytest_gpio_validator.py \
+          cd build
+
+          python -m pytest ../pytest_gpio_validator.py \
             --target esp32 \
             --embedded-services idf,qemu \
-            --build-dir build \
+            -c ../pytest.ini \
             -s
