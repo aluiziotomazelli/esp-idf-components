@@ -1,0 +1,10 @@
+# Documentation: https://docs.espressif.com/projects/idf-component-manager/en/latest/reference/manifest_file.html
+version: "1.0.0"
+description: "A runtime GPIO validator for ESP32, S3, and C3"
+url: "https://github.com/aluiziotomazelli/esp-idf-components"
+targets:
+  - esp32
+  - esp32s3
+  - esp32c3
+dependencies:
+  idf: ">=5.0"

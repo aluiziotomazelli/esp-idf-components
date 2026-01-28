@@ -50,6 +50,6 @@ jobs:
           
           # Executes set-target to ensure configuration the first time
           # After the cache is "warm", you can comment this line
-          idf.py set-target ${{ matrix.idf_target }}
+          # idf.py set-target ${{ matrix.idf_target }}
           
           idf.py build
