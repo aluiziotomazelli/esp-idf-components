@@ -1,5 +1,5 @@
 # .github/workflows/gpio_validator.yml
-name: Build GPIO Validator on esp32
+name: Build GPIO Validator Multi-Target
 
 on:
   push:
@@ -7,14 +7,15 @@ on:
     paths:
       - 'gpio_validator/**'
       - '.github/workflows/gpio_validator.yml'
-  pull_request:
-    paths:
-      - 'gpio_validator/**'
 
 jobs:
-  build_esp32:
+  build_targets:
     runs-on: ubuntu-latest
     container: espressif/idf:release-v5.5
+    strategy:
+      fail-fast: false
+      matrix:
+        idf_target: [esp32, esp32s3, esp32c3]
 
     steps:
       - name: Checkout code
@@ -22,23 +23,22 @@ jobs:
         with:
           submodules: recursive
 
-      # PIP cache in local project folder to avoid permission issues with /github/home
+      # PIP cache
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: gpio_validator/test/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # ESP-IDF build cache
+          key: ${{ runner.os }}-pip-pytest
+      
+      # Build cache for each TARGET
       - name: Cache ESP-IDF Build
         uses: actions/cache@v4
         with:
           path: gpio_validator/test/build
-          key: idf-build-esp32-${{ github.sha }}
+          # The key includes the target to avoid overwriting different targets' caches
+          key: idf-build-${{ matrix.idf_target }}-${{ github.sha }}
           restore-keys: |
-            idf-build-esp32-
+            idf-build-${{ matrix.idf_target }}-
 
       - name: Build GPIO Validator
         shell: bash
@@ -46,8 +46,10 @@ jobs:
         run: |
           . $IDF_PATH/export.sh
           
-          # Instala usando a pasta de cache local que o root tem permissão de escrita
           python -m pip install --cache-dir .cache/pip pytest-embedded-idf pytest-embedded-qemu
           
-          idf.py set-target esp32
+          # Executes set-target to ensure configuration the first time
+          # After the cache is "warm", you can comment this line
+          idf.py set-target ${{ matrix.idf_target }}
+          
           idf.py build
