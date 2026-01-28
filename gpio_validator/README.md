@@ -58,7 +58,22 @@ void setup_my_hardware() {
     }
 }
 ```
+## Using as a Dependency
 
+To use this component in your project via the ESP-IDF Component Manager, add it to your project's `idf_component.yml` file.
+
+### Via GitHub (Recommended for internal projects)
+
+If you want to pull the component directly from this repository:
+
+```yaml
+dependencies:
+  gpio_validator:
+    git: "https://github.com/aluiziotomazelli/esp-idf-components"
+    path: "gpio_validator"
+    # Optional: Pin to a specific tag or commit
+    # version: "v1.0.0" 
+```
 ## Logging
 The component uses the standard ESP_LOG system:
 - Errors (Red): For prohibited pins that will cause system failure.
