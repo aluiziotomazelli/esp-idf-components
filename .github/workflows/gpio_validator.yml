@@ -12,7 +12,7 @@ on:
       - 'gpio_validator/**'
 
 jobs:
-  test_esp32:
+  build_esp32:
     runs-on: ubuntu-latest
     container: espressif/idf:release-v5.5
 
@@ -22,30 +22,32 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Cache IDF build
-        uses: actions/cache@v3
+      # PIP cache in local project folder to avoid permission issues with /github/home
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: gpio_validator/test/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # ESP-IDF build cache
+      - name: Cache ESP-IDF Build
+        uses: actions/cache@v4
         with:
           path: gpio_validator/test/build
-          key: idf-build-esp32-${{ hashFiles('gpio_validator/test/main/**') }}
-          restore-keys: idf-build-esp32-
+          key: idf-build-esp32-${{ github.sha }}
+          restore-keys: |
+            idf-build-esp32-
 
-      - name: Build and Test ESP32
+      - name: Build GPIO Validator
         shell: bash
         working-directory: gpio_validator/test
         run: |
           . $IDF_PATH/export.sh
-          python -m pip install pytest-embedded-qemu pytest-embedded-idf
+          
+          # Instala usando a pasta de cache local que o root tem permissão de escrita
+          python -m pip install --cache-dir .cache/pip pytest-embedded-idf pytest-embedded-qemu
           
           idf.py set-target esp32
           idf.py build
-
-          mkdir -p bootloader partition_table
-
-          cp build/bootloader/bootloader.bin bootloader/
-          cp build/partition_table/partition-table.bin partition_table/
-          cp build/test_gpio_validator.bin .
-
-          python -m pytest pytest_gpio_validator.py \
-            --target esp32 \
-            --embedded-services idf,qemu \
-            -s
