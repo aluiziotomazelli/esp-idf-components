@@ -1,5 +1,5 @@
 # .github/workflows/gpio_validator.yml
-name: Build GPIO Validator
+name: Build GPIO Validator on esp32
 
 on:
   push:
