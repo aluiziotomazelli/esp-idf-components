@@ -2,7 +2,7 @@
 
 [![Build GPIO Validator Multi-Target](https://github.com/aluiziotomazelli/esp-idf-components/actions/workflows/gpio_validator.yml/badge.svg)](https://github.com/aluiziotomazelli/esp-idf-components/actions/workflows/gpio_validator.yml)
 
-A lightweight ESP-IDF component to validate GPIO pins at runtime. It helps prevent common hardware conflicts by checking if a pin is reserved for SPI Flash, PSRAM, JTAG, or if it functions as a strapping pin for the specific chip model in use.
+A lightweight ESP-IDF component to validate GPIO pins at runtime. It helps prevent hardware conflicts by checking if a pin is reserved for SPI Flash, PSRAM, JTAG, or if it functions as a strapping pin for the specific chip model in use.
 
 ## Features
 
@@ -63,3 +63,38 @@ void setup_my_hardware() {
 The component uses the standard ESP_LOG system:
 - Errors (Red): For prohibited pins that will cause system failure.
 - Warnings (Yellow): For pins that might interfere with debugging (JTAG) or boot sequences (Strapping pins).
+
+## Testing
+
+The component includes a test suite based on the **Unity Test Framework**. These tests validate pin mapping logic for each chip target (ESP32, S3, C3).
+
+### Test Coverage
+
+- **Basic Validation**: Ensures standard GPIOs (like GPIO 4) are accepted for both Input and Output.
+- **Critical Pins**: Verifies that pins reserved for SPI Flash and PSRAM are strictly prohibited (returns `ESP_ERR_INVALID_ARG`).
+- **Input-Only Pins**: Checks that pins without output drivers (e.g., ESP32 pins 34-39) are rejected in `Mode::OUTPUT`.
+- **Warning/Strapping Pins**: Ensures that pins used for JTAG, Boot modes, or UART0 are allowed but trigger the appropriate log warnings.
+- **Edge Cases**: Validates behavior for out-of-range GPIO numbers (negative or exceeding chip limits).
+
+### How to Run Tests
+
+If you have `pytest-embedded` installed, you can run the tests in the `test` directory:
+
+```bash
+cd gpio_validator/test
+idf.py set-target esp32
+idf.py build
+# If using a physical chip:
+idf.py flash monitor
+# Or using QEMU (if supported):
+idf.py qemu monitor
+
+# Pytest on QEMU:
+pytest . --target esp32 --embedded-services idf,qemu
+```
+
+### Automated CI
+The project is continuously tested via GitHub Actions on every push, ensuring compatibility across:
+- **ESP32**
+- **ESP32-S3**
+- **ESP32-C3**
