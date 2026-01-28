@@ -45,7 +45,7 @@ jobs:
           cp build/partition_table/partition-table.bin partition_table/
           cp build/test_gpio_validator.bin .
 
-          # python -m pytest pytest_gpio_validator.py \
-          #   --target esp32 \
-          #   --embedded-services idf,qemu \
-          #   -s
+          python -m pytest pytest_gpio_validator.py \
+            --target esp32 \
+            --embedded-services idf,qemu \
+            -s
